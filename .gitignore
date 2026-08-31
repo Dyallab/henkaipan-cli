@@ -1,0 +1,17 @@
+# Build artifacts
+/bin/
+/dist/
+
+# Go
+*.test
+*.out
+coverage.txt
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# Local
+.env
+.env.local
