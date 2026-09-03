@@ -1,5 +1,5 @@
 # HenKaiPan CLI — example config
-# Copy to ~/.config/henkaipan/config.toml and adjust
+# Copy to a location of your choice and pass it with --config
 # Precedence: flag > env (HENKAIPAN_*) > this file (no built-in defaults)
 
 api_url = "https://henkaipan.dyallab.com.ar"

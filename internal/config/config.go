@@ -52,7 +52,7 @@ func FlagSet() *pflag.FlagSet {
 	fs.Int("timeout", 0, "HTTP request timeout in seconds")
 	fs.String("cf-access-client-id", "", "Cloudflare Access Service Token Client ID")
 	fs.String("cf-access-client-secret", "", "Cloudflare Access Service Token Client Secret")
-	fs.String("config", "", "config file (default $XDG_CONFIG_HOME/henkaipan/config.toml)")
+	fs.String("config", "", "config file (default: henkaipan/config.toml under os.UserConfigDir())")
 
 	return fs
 }
@@ -95,13 +95,13 @@ func Load(v *viper.Viper) (*Config, error) {
 	}
 	c.APIURL = strings.TrimRight(c.APIURL, "/")
 	if c.APIURL == "" {
-		return nil, fmt.Errorf("config: api_url is required (set in ~/.config/henkaipan/config.toml, --api-url or HENKAIPAN_API_URL)")
+		return nil, fmt.Errorf("config: api_url is required (set in the config file at the default location or passed with --config, --api-url or HENKAIPAN_API_URL)")
 	}
 	if c.Output == "" {
-		return nil, fmt.Errorf("config: output is required (set in ~/.config/henkaipan/config.toml, --output or HENKAIPAN_OUTPUT)")
+		return nil, fmt.Errorf("config: output is required (set in the config file at the default location or passed with --config, --output or HENKAIPAN_OUTPUT)")
 	}
 	if c.TimeoutSeconds == 0 {
-		return nil, fmt.Errorf("config: timeout_seconds is required (set in ~/.config/henkaipan/config.toml, --timeout or HENKAIPAN_TIMEOUT)")
+		return nil, fmt.Errorf("config: timeout_seconds is required (set in the config file at the default location or passed with --config, --timeout or HENKAIPAN_TIMEOUT)")
 	}
 	return c, nil
 }

@@ -57,7 +57,7 @@ Configuration is resolved in this order (highest priority first):
 
 1. CLI flags (`--api-url`, `--api-key`, ...)
 2. Environment variables (`HENKAIPAN_API_URL`, `HENKAIPAN_API_KEY`, ...)
-3. Config file (`~/.config/henkaipan/config.toml`, TOML — see `config.example.toml`)
+3. Config file (`henkaipan/config.toml` in the platform-specific directory returned by `os.UserConfigDir()`, TOML — see `config.example.toml`)
 
 No built-in defaults — missing file or missing required keys returns an error. Use `--config` to point to a custom file.
 
@@ -69,14 +69,13 @@ No built-in defaults — missing file or missing required keys returns an error.
 | `--cf-access-client-secret` | `HENKAIPAN_CF_ACCESS_CLIENT_SECRET` | `cf_access_client_secret` | Cloudflare Access Service Token client secret |
 | `--output`                  | `HENKAIPAN_OUTPUT`               | `output`                   | Output format (`table`, `json`, `yaml`)   |
 | `--timeout`                 | `HENKAIPAN_TIMEOUT`              | `timeout_seconds`          | HTTP request timeout in seconds           |
-| `--config`                  | —                                | —                          | Path to TOML config file (default `~/.config/henkaipan/config.toml`) |
+| `--config`                  | —                                | —                          | Path to TOML config file (default: `henkaipan/config.toml` under `os.UserConfigDir()`) |
 
 ```bash
-# Create config from example
-mkdir -p ~/.config/henkaipan
-cp config.example.toml ~/.config/henkaipan/config.toml
+# Use a config file at an explicit, portable location
+cp config.example.toml ./config.toml
 # edit api_key, then run without env vars
-henkaipan scan run --repo-url https://github.com/owner/repo --wait --fail-on high
+henkaipan --config ./config.toml scan run --repo-url https://github.com/owner/repo --wait --fail-on high
 ```
 
 The API key is **never printed** — it is wrapped in a typed value that
