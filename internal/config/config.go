@@ -13,7 +13,7 @@ import (
 // Defaults that match the epic and the existing henkaipan-action contract.
 const (
 	DefaultAPIURL = "https://henkaipan.dyallab.com.ar"
-	UserAgent     = "henkaipan-cli/0.1.0"
+	UserAgent     = "henkaipan-cli/0.2.0"
 )
 
 // SecretValue wraps a string that should never appear in plain-text output.

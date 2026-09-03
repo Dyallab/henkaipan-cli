@@ -19,7 +19,7 @@ client protocol version negotiation.
 go install github.com/dyallab/henkaipan-cli/cmd/henkaipan@latest
 
 # Pin to a tag
-go install github.com/dyallab/henkaipan-cli/cmd/henkaipan@v0.1.0
+go install github.com/dyallab/henkaipan-cli/cmd/henkaipan@v0.2.0
 ```
 
 Or grab a prebuilt binary from the
