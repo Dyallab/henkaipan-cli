@@ -57,16 +57,26 @@ Configuration is resolved in this order (highest priority first):
 
 1. CLI flags (`--api-url`, `--api-key`, ...)
 2. Environment variables (`HENKAIPAN_API_URL`, `HENKAIPAN_API_KEY`, ...)
-3. Built-in defaults
+3. Config file (`henkaipan/config.toml` in the platform-specific directory returned by `os.UserConfigDir()`, TOML — see `config.example.toml`)
 
-| Flag                        | Env var                          | Default                                | Purpose                                                      |
-| --------------------------- | -------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
-| `--api-url`                 | `HENKAIPAN_API_URL`              | `https://henkaipan.dyallab.com.ar`     | Base URL of the HenKaiPan API                                |
-| `--api-key`                 | `HENKAIPAN_API_KEY`              | *(none)*                               | API token used as `X-API-Key`                                |
-| `--cf-access-client-id`     | `HENKAIPAN_CF_ACCESS_CLIENT_ID`  | *(none)*                               | Cloudflare Access Service Token client ID                    |
-| `--cf-access-client-secret` | `HENKAIPAN_CF_ACCESS_CLIENT_SECRET` | *(none)*                            | Cloudflare Access Service Token client secret                |
-| `--output`                  | `HENKAIPAN_OUTPUT`               | `table`                                | Output format (`table`, `json`, `yaml`)                      |
-| `--timeout`                 | `HENKAIPAN_TIMEOUT`              | `60`                                   | HTTP request timeout in seconds                              |
+No built-in defaults — missing file or missing required keys returns an error. Use `--config` to point to a custom file.
+
+| Flag                        | Env var                          | Config key (TOML)          | Purpose                                   |
+| --------------------------- | -------------------------------- | -------------------------- | ----------------------------------------- |
+| `--api-url`                 | `HENKAIPAN_API_URL`              | `api_url`                  | Base URL of the HenKaiPan API             |
+| `--api-key`                 | `HENKAIPAN_API_KEY`              | `api_key`                  | API token used as `X-API-Key`             |
+| `--cf-access-client-id`     | `HENKAIPAN_CF_ACCESS_CLIENT_ID`  | `cf_access_client_id`      | Cloudflare Access Service Token client ID |
+| `--cf-access-client-secret` | `HENKAIPAN_CF_ACCESS_CLIENT_SECRET` | `cf_access_client_secret` | Cloudflare Access Service Token client secret |
+| `--output`                  | `HENKAIPAN_OUTPUT`               | `output`                   | Output format (`table`, `json`, `yaml`)   |
+| `--timeout`                 | `HENKAIPAN_TIMEOUT`              | `timeout_seconds`          | HTTP request timeout in seconds           |
+| `--config`                  | —                                | —                          | Path to TOML config file (default: `henkaipan/config.toml` under `os.UserConfigDir()`) |
+
+```bash
+# Use a config file at an explicit, portable location
+cp config.example.toml ./config.toml
+# edit api_key, then run without env vars
+henkaipan --config ./config.toml scan run --repo-url https://github.com/owner/repo --wait --fail-on high
+```
 
 The API key is **never printed** — it is wrapped in a typed value that
 masks itself on every format verb (`%s`, `%v`, `String()`, `GoString()`).

@@ -43,6 +43,13 @@ Common usage:
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			v := viper.GetViper()
 			config.Bind(v, flags)
+			if cmd.Name() == "version" {
+				return nil
+			}
+			cfgFile, _ := flags.GetString("config")
+			if err := config.InitConfig(v, cfgFile); err != nil {
+				return err
+			}
 			return nil
 		},
 	}

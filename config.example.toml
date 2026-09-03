@@ -1,0 +1,12 @@
+# HenKaiPan CLI — example config
+# Copy to a location of your choice and pass it with --config
+# Precedence: flag > env (HENKAIPAN_*) > this file (no built-in defaults)
+
+api_url = "https://henkaipan.dyallab.com.ar"
+api_key = "hkp_xxxxxxxxxxxxxxxxxxxx"
+output = "table"
+timeout_seconds = 60
+
+# Cloudflare Access Service Token (optional, for instances behind Cloudflare Access)
+# cf_access_client_id = ""
+# cf_access_client_secret = ""

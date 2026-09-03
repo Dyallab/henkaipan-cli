@@ -1,6 +1,8 @@
 package config
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -8,9 +10,6 @@ import (
 	"github.com/spf13/viper"
 )
 
-// freshViper creates a brand-new viper + flag set pair so each test has
-// independent precedence state. This mirrors how cli.NewRootCmd wires them
-// together once per process.
 func freshViper() (*viper.Viper, *pflag.FlagSet) {
 	v := viper.New()
 	fs := FlagSet()
@@ -18,27 +17,59 @@ func freshViper() (*viper.Viper, *pflag.FlagSet) {
 	return v, fs
 }
 
-func TestDefaultAPIURL(t *testing.T) {
-	v, _ := freshViper()
-	cfg, err := Load(v)
-	if err != nil {
+func writeTempConfig(t *testing.T, content string) string {
+	t.Helper()
+	dir := t.TempDir()
+	p := filepath.Join(dir, "config.toml")
+	if err := os.WriteFile(p, []byte(content), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if cfg.APIURL != DefaultAPIURL {
-		t.Errorf("default api-url = %q, want %q", cfg.APIURL, DefaultAPIURL)
+	return p
+}
+
+func TestMissingConfigErrors(t *testing.T) {
+	v, _ := freshViper()
+	if err := InitConfig(v, "/tmp/does-not-exist-henkaipan.toml"); err == nil {
+		t.Fatal("expected error for missing config file")
 	}
 }
 
-func TestEnvOverridesDefault(t *testing.T) {
-	t.Setenv("HENKAIPAN_API_URL", "https://example.test")
-
+func TestFileLoad(t *testing.T) {
+	cfgFile := writeTempConfig(t, "api_url = \"https://file.test\"\noutput = \"json\"\ntimeout_seconds = 60\n")
 	v, _ := freshViper()
+	if err := InitConfig(v, cfgFile); err != nil {
+		t.Fatal(err)
+	}
 	cfg, err := Load(v)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.APIURL != "https://example.test" {
-		t.Errorf("env override failed; got %q", cfg.APIURL)
+	if cfg.APIURL != "https://file.test" {
+		t.Errorf("file load failed; got %q", cfg.APIURL)
+	}
+	if cfg.Output != "json" {
+		t.Errorf("output from file = %q, want json", cfg.Output)
+	}
+}
+
+func TestEnvOverridesFile(t *testing.T) {
+	cfgFile := writeTempConfig(t, "api_url = \"https://file.test\"\noutput = \"table\"\ntimeout_seconds = 60\n")
+	t.Setenv("HENKAIPAN_API_URL", "https://env.test")
+	t.Setenv("HENKAIPAN_OUTPUT", "yaml")
+
+	v, _ := freshViper()
+	if err := InitConfig(v, cfgFile); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != "https://env.test" {
+		t.Errorf("env should beat file; got %q", cfg.APIURL)
+	}
+	if cfg.Output != "yaml" {
+		t.Errorf("env output should beat file; got %q", cfg.Output)
 	}
 }
 
@@ -56,28 +87,63 @@ func TestSecretValueMasks(t *testing.T) {
 }
 
 func TestFlagOverridesEnv(t *testing.T) {
+	cfgFile := writeTempConfig(t, "api_url = \"https://file.test\"\noutput = \"table\"\ntimeout_seconds = 60\n")
 	t.Setenv("HENKAIPAN_API_URL", "https://env.test")
 
-	// Re-parse a fresh flag set with the CLI flag set, then re-bind viper
-	// so the parsed flag value is visible.
 	parsed := FlagSet()
 	if err := parsed.Parse([]string{"--api-url=https://flag.test"}); err != nil {
 		t.Fatal(err)
 	}
 	v := viper.New()
 	Bind(v, parsed)
-	cfg, _ := Load(v)
+	if err := InitConfig(v, cfgFile); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(v)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if cfg.APIURL != "https://flag.test" {
 		t.Errorf("flag should beat env; got %q", cfg.APIURL)
 	}
 }
 
 func TestTrailingSlashTrimmed(t *testing.T) {
+	cfgFile := writeTempConfig(t, "output = \"table\"\ntimeout_seconds = 60\n")
 	t.Setenv("HENKAIPAN_API_URL", "https://example.test/")
 
 	v, _ := freshViper()
-	cfg, _ := Load(v)
+	if err := InitConfig(v, cfgFile); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(v)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if strings.HasSuffix(cfg.APIURL, "/") {
 		t.Errorf("trailing slash not trimmed: %q", cfg.APIURL)
+	}
+}
+
+func TestFlagOverridesFile(t *testing.T) {
+	cfgFile := writeTempConfig(t, "api_url = \"https://file.test\"\noutput = \"table\"\ntimeout_seconds = 60\n")
+	parsed := FlagSet()
+	if err := parsed.Parse([]string{"--api-url=https://flag.test", "--output=json"}); err != nil {
+		t.Fatal(err)
+	}
+	v := viper.New()
+	Bind(v, parsed)
+	if err := InitConfig(v, cfgFile); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(v)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.APIURL != "https://flag.test" {
+		t.Errorf("flag should beat file; got %q", cfg.APIURL)
+	}
+	if cfg.Output != "json" {
+		t.Errorf("flag output should beat file; got %q", cfg.Output)
 	}
 }
